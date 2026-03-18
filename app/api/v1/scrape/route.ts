@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const url = body.url;
     const xRayMode = body.xRayMode === true; // Extract boolean
+    const retainUsernames = body.retainUsernames === true;
 
     if (!url) {
       return NextResponse.json({ status: 'error', error: '400 Bad Request: target URL string is required inside JSON body payload.' }, { status: 400 });
@@ -133,10 +134,11 @@ export async function POST(req: Request) {
 
     const authorMap = new Map<string, string>();
     if (opAuthor && opAuthor !== '[deleted]') {
-      authorMap.set(opAuthor, 'Person 1 (OP)');
+      authorMap.set(opAuthor, retainUsernames ? opAuthor : 'Person 1 (OP)');
     }
 
-    let fullText = `TITLE: ${title}\n\n--- POST BODY ---\nPerson 1 (OP):\n${bodyText}\n\n--- COMMENTS ---\n\n`;
+    const opDisplay = retainUsernames ? (opAuthor && opAuthor !== '[deleted]' ? opAuthor : 'Unknown User') : 'Person 1 (OP)';
+    let fullText = `TITLE: ${title}\n\n--- POST BODY ---\n${opDisplay}:\n${bodyText}\n\n--- COMMENTS ---\n\n`;
 
     // Map recursive comments natively retaining tree architecture depth
     const processComment = (commentNode: any, depth: number = 0): string => {
@@ -153,7 +155,7 @@ export async function POST(req: Request) {
 
       const assignedAuthor = author !== '[deleted]' ? author : 'Unknown User';
       if (!authorMap.has(assignedAuthor) && assignedAuthor !== 'Unknown User') {
-         authorMap.set(assignedAuthor, `Person ${authorMap.size + 1}`);
+         authorMap.set(assignedAuthor, retainUsernames ? assignedAuthor : `Person ${authorMap.size + 1}`);
       }
       
       const alias = authorMap.get(assignedAuthor) || assignedAuthor;

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { url } = await req.json();
+    const { url, retainUsernames } = await req.json();
     
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
 
     const authorMap = new Map<string, string>();
     if (opAuthor && opAuthor !== '[deleted]') {
-      authorMap.set(opAuthor, 'Person 1 (OP)');
+      authorMap.set(opAuthor, retainUsernames ? opAuthor : 'Person 1 (OP)');
     }
 
     // Media extraction (OP Image / Gallery fallback from JSON)
@@ -93,7 +93,8 @@ export async function POST(req: Request) {
       media.push(img);
     }
 
-    let fullText = `TITLE: ${title}\n\n--- POST BODY ---\nPerson 1 (OP):\n${bodyText}\n\n--- COMMENTS ---\n\n`;
+    const opDisplay = retainUsernames ? (opAuthor && opAuthor !== '[deleted]' ? opAuthor : 'Unknown User') : 'Person 1 (OP)';
+    let fullText = `TITLE: ${title}\n\n--- POST BODY ---\n${opDisplay}:\n${bodyText}\n\n--- COMMENTS ---\n\n`;
 
     // 5. Recreate exact anonymization and indentation recursively
     const processComment = (commentNode: any, depth: number = 0): string => {
@@ -106,7 +107,7 @@ export async function POST(req: Request) {
 
       if (author && author !== '[deleted]') {
         if (!authorMap.has(author)) {
-          authorMap.set(author, `Person ${authorMap.size + 1}`);
+          authorMap.set(author, retainUsernames ? author : `Person ${authorMap.size + 1}`);
         }
 
         const text = data.body || '';

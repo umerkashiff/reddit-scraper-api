@@ -81,6 +81,7 @@ export default function Home() {
   const [apiTesting, setApiTesting] = useState(false);
   const [codeTab, setCodeTab] = useState("curl");
   const [xRayMode, setXRayMode] = useState(false);
+  const [retainUsernames, setRetainUsernames] = useState(false);
 
   const [baseUrl, setBaseUrl] = useState("https://reddit-scraper.com");
 
@@ -128,7 +129,7 @@ export default function Home() {
     if (xRayMode) addLog(`X-RAY ENABLED: Preparing concurrent database sweep mapping architectures for Pullpush...`);
 
     const res = await fetch("/api/reddit", {
-      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: targetUrl, xRayMode }),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: targetUrl, retainUsernames }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -187,8 +188,8 @@ export default function Home() {
       const targetUrl = url || "https://www.reddit.com/r/IAmA/comments/z1c9z/i_am_barack_obama_president_of_the_united_states/";
       addLog(`PUBLIC API REQ: Testing /api/v1/scrape with ${targetUrl}`);
       const t0 = performance.now();
-      const res = await fetch("/api/v1/scrape", {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: targetUrl, xRayMode }),
+      const res = await fetch("/api/reddit", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ url: targetUrl, retainUsernames }),
       });
       const data = await res.json();
       addLog(`PUBLIC API RES: HTTP ${res.status} returned in ${(performance.now() - t0).toFixed(0)}ms`);
@@ -305,13 +306,20 @@ export default function Home() {
                   </div>
                   {error && <div className="text-rose-500 font-mono text-xs mt-3 px-2 flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-rose-500" />{error}</div>}
 
-                  {/* Premium X-Ray Mode Toggle */}
-                  <div className="pt-2">
-                    <button onClick={() => setXRayMode(!xRayMode)} className="flex items-center gap-4 mt-2 self-center sm:self-auto px-5 py-2.5 rounded-full border border-[#1f1f1f] shadow-lg bg-[#0a0a0a] transition-all hover:bg-[#111] group">
-                      <div className={`w-10 h-5 rounded-full relative transition-colors shadow-inner flex items-center px-[2px] ${xRayMode ? "bg-[#FF4500]" : "bg-[#222]"}`}>
+                  {/* Feature Toggles */}
+                  <div className="pt-2 flex flex-col sm:flex-row gap-4">
+                    <button onClick={() => setXRayMode(!xRayMode)} className="flex items-center justify-between sm:justify-start gap-4 self-stretch sm:self-auto px-5 py-2.5 rounded-full border border-[#1f1f1f] shadow-lg bg-[#0a0a0a] transition-all hover:bg-[#111] group">
+                      <div className={`w-10 h-5 rounded-full relative transition-colors shadow-inner flex items-center px-[2px] shrink-0 ${xRayMode ? "bg-[#FF4500]" : "bg-[#222]"}`}>
                         <motion.div animate={{ x: xRayMode ? 20 : 0 }} className={`w-4 h-4 bg-white rounded-full shadow-md ${xRayMode ? "shadow-[0_0_10px_rgba(255,255,255,0.8)]" : ""}`} />
                       </div>
                       <span className={`text-[13px] font-semibold tracking-widest uppercase transition-colors ${xRayMode ? "text-[#FF4500]" : "text-zinc-500 group-hover:text-zinc-400"}`}>X-Ray Mode <span className="text-zinc-600 font-normal ml-1 normal-case tracking-normal">(Recover Deleted)</span></span>
+                    </button>
+
+                    <button onClick={() => setRetainUsernames(!retainUsernames)} className="flex items-center justify-between sm:justify-start gap-4 self-stretch sm:self-auto px-5 py-2.5 rounded-full border border-[#1f1f1f] shadow-lg bg-[#0a0a0a] transition-all hover:bg-[#111] group">
+                      <div className={`w-10 h-5 rounded-full relative transition-colors shadow-inner flex items-center px-[2px] shrink-0 ${retainUsernames ? "bg-[#FF4500]" : "bg-[#222]"}`}>
+                        <motion.div animate={{ x: retainUsernames ? 20 : 0 }} className={`w-4 h-4 bg-white rounded-full shadow-md ${retainUsernames ? "shadow-[0_0_10px_rgba(255,255,255,0.8)]" : ""}`} />
+                      </div>
+                      <span className={`text-[13px] font-semibold tracking-widest uppercase transition-colors ${retainUsernames ? "text-[#FF4500]" : "text-zinc-500 group-hover:text-zinc-400"}`}>Native Users <span className="text-zinc-600 font-normal ml-1 normal-case tracking-normal">(Disable Aliases)</span></span>
                     </button>
                   </div>
                 </motion.div>

@@ -65,7 +65,6 @@
 
   body {
     color: hsl(var(--foreground));
-    overscroll-behavior-y: none;
   }
 
   pre, code {
